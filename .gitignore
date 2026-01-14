@@ -1,0 +1,28 @@
+# === Python 基础垃圾 ===
+__pycache__/
+*.py[cod]
+*$py.class
+
+# === 虚拟环境===
+venv/
+.venv/
+env/
+.env/
+
+# === PyInstaller 打包产生的垃圾 ===
+# 你的 exe 和临时编译文件都在这里，不需要上传
+# 因为我们会用 GitHub Actions 在云端重新生成
+build/
+dist/
+*.spec
+
+# === macOS 专属垃圾 ===
+.DS_Store
+
+# === Windows 专属垃圾 ===
+Thumbs.db
+
+# === IDE 配置 (可选) ===
+# 如果不想上传你的 VSCode/PyCharm 个人配置，把下面取消注释
+.vscode/
+.idea/

@@ -1,0 +1,5 @@
+pyserial
+pynput
+pyautogui
+pyperclip
+pyinstaller
