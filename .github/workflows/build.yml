@@ -1,50 +1,60 @@
-name: Build Balance App
+name: Build and Release
 
-# 触发条件：当你推送到 main 分支时自动运行
+# 触发条件修改：
+# 只有当你推送以 'v' 开头的标签（如 v1.0, v2.0）时，才会运行
 on:
   push:
-    branches: [ "main" ]
-  workflow_dispatch: # 允许手动点击运行
+    tags:
+      - "v*"
+
+# 权限设置：允许这个脚本创建 Release
+permissions:
+  contents: write
 
 jobs:
   build:
-    # 策略：同时跑两个任务，一个Win，一个Mac
     strategy:
       matrix:
         os: [windows-latest, macos-latest]
-    
+
     runs-on: ${{ matrix.os }}
 
     steps:
-    # 1. 拉取你的代码
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    # 2. 安装 Python 3.10
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-    # 3. 安装依赖库 (根据你的 requirements.txt)
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
-    # 4. Windows 打包 (隐藏黑框，生成 .exe)
-    - name: Build with PyInstaller (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        pyinstaller --noconsole --onefile --name="梅特勒助手_Win" gui_app.py
+      # --- Windows 打包 ---
+      - name: Build with PyInstaller (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          # 生成 exe
+          pyinstaller --noconsole --onefile --name="MettlerHelper_Win" gui.py
 
-    # 5. macOS 打包 (保留黑框以获取权限，生成Unix文件)
-    - name: Build with PyInstaller (macOS)
-      if: runner.os == 'macOS'
-      run: |
-        pyinstaller --onefile --name="梅特勒助手_Mac" gui_app.py
+      # --- macOS 打包 ---
+      - name: Build with PyInstaller (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          # 生成 Unix 可执行文件
+          pyinstaller --onefile --name="MettlerHelper_Mac" gui.py
 
-    # 6. 上传打包结果供下载
-    - name: Upload Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: BalanceApp-${{ matrix.os }}
-        path: dist/
+          # 【重要】把 Mac 程序压缩成 zip
+          # 否则直接下载二进制文件，Mac 系统可能会因为权限问题不让运行
+          cd dist
+          zip -r MettlerHelper_Mac.zip MettlerHelper_Mac
+
+      # --- 发布到 Releases 页面 (核心步骤) ---
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            dist/MettlerHelper_Win.exe
+            dist/MettlerHelper_Mac.zip
