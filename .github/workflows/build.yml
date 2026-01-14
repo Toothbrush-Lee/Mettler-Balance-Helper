@@ -34,13 +34,13 @@ jobs:
     - name: Build with PyInstaller (Windows)
       if: runner.os == 'Windows'
       run: |
-        pyinstaller --noconsole --onefile --name="梅特勒助手_Win" gui.py
+        pyinstaller --noconsole --onefile --name="梅特勒助手_Win" gui_app.py
 
     # 5. macOS 打包 (保留黑框以获取权限，生成Unix文件)
     - name: Build with PyInstaller (macOS)
       if: runner.os == 'macOS'
       run: |
-        pyinstaller --onefile --name="梅特勒助手_Mac" gui.py
+        pyinstaller --onefile --name="梅特勒助手_Mac" gui_app.py
 
     # 6. 上传打包结果供下载
     - name: Upload Artifacts
