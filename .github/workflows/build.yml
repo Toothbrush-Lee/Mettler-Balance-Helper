@@ -1,0 +1,50 @@
+name: Build Balance App
+
+# 触发条件：当你推送到 main 分支时自动运行
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # 允许手动点击运行
+
+jobs:
+  build:
+    # 策略：同时跑两个任务，一个Win，一个Mac
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+    
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    # 1. 拉取你的代码
+    - uses: actions/checkout@v4
+
+    # 2. 安装 Python 3.10
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    # 3. 安装依赖库 (根据你的 requirements.txt)
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    # 4. Windows 打包 (隐藏黑框，生成 .exe)
+    - name: Build with PyInstaller (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        pyinstaller --noconsole --onefile --name="梅特勒助手_Win" gui.py
+
+    # 5. macOS 打包 (保留黑框以获取权限，生成Unix文件)
+    - name: Build with PyInstaller (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        pyinstaller --onefile --name="梅特勒助手_Mac" gui.py
+
+    # 6. 上传打包结果供下载
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: BalanceApp-${{ matrix.os }}
+        path: dist/
